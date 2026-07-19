@@ -17,6 +17,7 @@
   .seat { width: 26px; height: 24px; border-radius: 5px 5px 2px 2px; border: none;
           font-size: .6rem; cursor: pointer; color: rgba(0,0,0,.55); }
   .seat.sel { outline: 3px solid dodgerblue; }
+  .seat.ghost { visibility: hidden; }
   .aisle { width: 14px; }
   .S { background: #2ecc71; } .A { background: #a3d977; }
   .B { background: #f5c542; } .C { background: #e67e5a; }
@@ -85,8 +86,14 @@ function render() {
     const $row = document.createElement("div");
     $row.className = "row";
     $row.insertAdjacentHTML("beforeend", `<span class="rowlabel">${row.label}</span>`);
-    const center = (row.seats + 1) / 2;
+    const center = screen.centerCol ?? (row.seats + 1) / 2;
     for (let n = 1; n <= row.seats; n++) {
+      if (row.absent?.includes(n)) {
+        $row.insertAdjacentHTML("beforeend", `<button class="seat ghost"></button>`);
+        if (screen.aisles?.includes(n) && n < row.seats)
+          $row.insertAdjacentHTML("beforeend", `<span class="aisle"></span>`);
+        continue;
+      }
       const offsetX = (n - center) * screen.seatWidth;
       const score = scoreSeat(screen, ri, offsetX);
       const g = grade(score);
