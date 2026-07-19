@@ -144,7 +144,8 @@ function render() {
     $row.insertAdjacentHTML("beforeend", `<span class="rowlabel">${row.label}</span>`);
     $hall.appendChild($row);
   });
-  $best.textContent = `👑 이 관의 명당: ${best.label} (${best.score}점)`;
+  $best.innerHTML = `👑 이 관의 명당: ${best.label} (${best.score}점)` +
+    (screen.note ? `<br>💬 ${screen.note}` : "");
 }
 
 $c.onchange();

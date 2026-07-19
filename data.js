@@ -4,6 +4,30 @@
 // rows: 앞열부터 순서대로. seats: 그 열의 좌석 수.
 const THEATERS = [
   {
+    name: "CGV 방학",
+    screens: [
+      {
+        name: "4DX관",
+        screenWidth: 10, // 추정치
+        firstRowDist: 5, // 추정치
+        rowSpacing: 1.2, // 추정치 (4DX 모션시트)
+        seatWidth: 0.6,
+        aisles: [],
+        note: "4DX는 4석 유닛이 함께 움직여 유닛 끝자리(5·8번)가 모션 체감 최대 (보급형 시트) · H12 장애인석",
+        rows: [
+          { label: "A", seats: 12 },
+          { label: "B", seats: 12 },
+          { label: "C", seats: 12 },
+          { label: "D", seats: 12 },
+          { label: "E", seats: 12 },
+          { label: "F", seats: 12 },
+          { label: "G", seats: 12 },
+          { label: "H", seats: 12 },
+        ],
+      },
+    ],
+  },
+  {
     name: "CGV 의정부",
     screens: [
       {
