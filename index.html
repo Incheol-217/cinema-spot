@@ -38,6 +38,7 @@
   <select id="chainSel"></select>
   <select id="branchSel"></select>
   <select id="screenSel"></select>
+  <select id="genreSel"></select>
 </div>
 <div class="legend">
   <span class="S">S 명당</span><span class="A">A 좋음</span>
@@ -52,20 +53,28 @@
 <script>
 const DEG = 180 / Math.PI;
 
-// 명당 점수: 수평 시야각(THX 권장 ~36°, 이상 40° 부근)과 중앙 이탈각으로 계산
-function scoreSeat(screen, rowIdx, offsetX) {
+// 장르별 목표 시야각: 자막은 약간 뒤(작은 각), 음악은 더 뒤, 3D/IMAX는 약간 앞(큰 각)
+const GENRES = { "2D (기본)": 40, "자막 영화": 36, "음악·뮤지컬": 32, "3D·IMAX": 45 };
+
+// 명당 점수: 수평 시야각(장르별 목표각)·중앙 이탈각 + 통로 옆/맨 뒷줄 감점
+function scoreSeat(screen, rowIdx, offsetX, opts = {}) {
   const d = screen.firstRowDist + rowIdx * screen.rowSpacing;
   const hAngle = 2 * Math.atan(screen.screenWidth / 2 / d) * DEG; // 화면이 차지하는 수평 시야각
   const skew = Math.abs(Math.atan(offsetX / d)) * DEG;            // 중앙에서 벗어난 각도
   // ponytail: 단순 선형 페널티 휴리스틱 — 실측 후 계수(2.5, 2)만 조정하면 됨
-  const angleScore = 100 - Math.min(100, Math.abs(hAngle - 40) * 2.5);
-  return Math.max(0, Math.round(angleScore - skew * 2));
+  const angleScore = 100 - Math.min(100, Math.abs(hAngle - (opts.targetAngle ?? 40)) * 2.5);
+  const aislePenalty = opts.byAisle ? 7 : 0;   // 관객 이동·비상등
+  const backPenalty = opts.lastRow ? 10 : 0;   // 자막 가독성·몰입 저하
+  return Math.max(0, Math.round(angleScore - skew * 2 - aislePenalty - backPenalty));
 }
 const grade = s => s >= 85 ? "S" : s >= 70 ? "A" : s >= 50 ? "B" : "C";
 
 const $c = document.getElementById("chainSel");
 const $b = document.getElementById("branchSel");
 const $s = document.getElementById("screenSel");
+const $g = document.getElementById("genreSel");
+Object.keys(GENRES).forEach(g => $g.add(new Option(g, g)));
+$g.onchange = () => render();
 const $hall = document.getElementById("hall");
 const $detail = document.getElementById("detail");
 const $best = document.getElementById("best");
@@ -106,7 +115,11 @@ function render() {
         continue;
       }
       const offsetX = (n - center) * screen.seatWidth;
-      const score = scoreSeat(screen, ri, offsetX);
+      const byAisle = n === 1 || n === row.seats ||
+        screen.aisles?.some(a => n === a || n === a + 1);
+      const opts = { targetAngle: GENRES[$g.value], byAisle,
+                     lastRow: ri === screen.rows.length - 1 };
+      const score = scoreSeat(screen, ri, offsetX, opts);
       const g = grade(score);
       const $seat = document.createElement("button");
       $seat.className = `seat ${g}`;
@@ -138,6 +151,7 @@ $c.onchange();
   const mid = scoreSeat(sc, Math.floor(sc.rows.length / 2), 0);
   const frontCorner = scoreSeat(sc, 0, 7 * sc.seatWidth);
   console.assert(mid > frontCorner, "scoring broken", { mid, frontCorner });
+  console.assert(scoreSeat(sc, 5, 0, { byAisle: true }) < scoreSeat(sc, 5, 0), "aisle penalty broken");
 })();
 </script>
 </body>

@@ -31,45 +31,4 @@ const THEATERS = [
       },
     ],
   },
-  {
-    name: "샘플시네마 강남점", // ← 실제 지점으로 교체
-    screens: [
-      {
-        name: "1관",
-        screenWidth: 12,
-        firstRowDist: 6,
-        rowSpacing: 1.1,
-        seatWidth: 0.55,
-        aisles: [4, 12],
-        rows: [
-          { label: "A", seats: 16 },
-          { label: "B", seats: 16 },
-          { label: "C", seats: 16 },
-          { label: "D", seats: 16 },
-          { label: "E", seats: 16 },
-          { label: "F", seats: 16 },
-          { label: "G", seats: 16 },
-          { label: "H", seats: 16 },
-          { label: "I", seats: 16 },
-          { label: "J", seats: 14 },
-        ],
-      },
-      {
-        name: "2관 (소형)",
-        screenWidth: 8,
-        firstRowDist: 4,
-        rowSpacing: 1.0,
-        seatWidth: 0.55,
-        aisles: [5],
-        rows: [
-          { label: "A", seats: 10 },
-          { label: "B", seats: 10 },
-          { label: "C", seats: 10 },
-          { label: "D", seats: 10 },
-          { label: "E", seats: 10 },
-          { label: "F", seats: 10 },
-        ],
-      },
-    ],
-  },
 ];
