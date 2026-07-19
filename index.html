@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영화관 명당</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4rem; }
+  select { font-size: 1rem; padding: 6px; margin-right: 8px; }
+  .screen { background: #333; color: #fff; text-align: center; padding: 6px;
+            border-radius: 4px 4px 40% 40% / 4px 4px 12px 12px; margin: 24px auto 20px; max-width: 70%; }
+  .hall { display: flex; flex-direction: column; gap: 5px; align-items: center; overflow-x: auto; }
+  .row { display: flex; gap: 4px; align-items: center; }
+  .rowlabel { width: 1.5em; text-align: center; font-size: .8rem; opacity: .6; }
+  .seat { width: 26px; height: 24px; border-radius: 5px 5px 2px 2px; border: none;
+          font-size: .6rem; cursor: pointer; color: rgba(0,0,0,.55); }
+  .seat.sel { outline: 3px solid dodgerblue; }
+  .aisle { width: 14px; }
+  .S { background: #2ecc71; } .A { background: #a3d977; }
+  .B { background: #f5c542; } .C { background: #e67e5a; }
+  .legend { display: flex; gap: 14px; margin: 16px 0; font-size: .85rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px;
+                         border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .legend .S::before { background: #2ecc71; } .legend .A::before { background: #a3d977; }
+  .legend .B::before { background: #f5c542; } .legend .C::before { background: #e67e5a; }
+  .legend span { background: none; }
+  #detail { margin-top: 12px; padding: 10px 14px; border: 1px solid #8884; border-radius: 8px;
+            min-height: 1.5em; font-size: .95rem; }
+  #best { margin-top: 8px; font-size: .95rem; }
+</style>
+</head>
+<body>
+<h1>🎬 영화관 명당 찾기</h1>
+<div>
+  <select id="theater"></select>
+  <select id="screenSel"></select>
+</div>
+<div class="legend">
+  <span class="S">S 명당</span><span class="A">A 좋음</span>
+  <span class="B">B 무난</span><span class="C">C 비추</span>
+</div>
+<div class="screen">S C R E E N</div>
+<div class="hall" id="hall"></div>
+<p id="best"></p>
+<div id="detail">좌석을 클릭하면 상세 정보가 표시됩니다.</div>
+
+<script src="data.js"></script>
+<script>
+const DEG = 180 / Math.PI;
+
+// 명당 점수: 수평 시야각(THX 권장 ~36°, 이상 40° 부근)과 중앙 이탈각으로 계산
+function scoreSeat(screen, rowIdx, offsetX) {
+  const d = screen.firstRowDist + rowIdx * screen.rowSpacing;
+  const hAngle = 2 * Math.atan(screen.screenWidth / 2 / d) * DEG; // 화면이 차지하는 수평 시야각
+  const skew = Math.abs(Math.atan(offsetX / d)) * DEG;            // 중앙에서 벗어난 각도
+  // ponytail: 단순 선형 페널티 휴리스틱 — 실측 후 계수(2.5, 2)만 조정하면 됨
+  const angleScore = 100 - Math.min(100, Math.abs(hAngle - 40) * 2.5);
+  return Math.max(0, Math.round(angleScore - skew * 2));
+}
+const grade = s => s >= 85 ? "S" : s >= 70 ? "A" : s >= 50 ? "B" : "C";
+
+const $t = document.getElementById("theater");
+const $s = document.getElementById("screenSel");
+const $hall = document.getElementById("hall");
+const $detail = document.getElementById("detail");
+const $best = document.getElementById("best");
+
+THEATERS.forEach((t, i) => $t.add(new Option(t.name, i)));
+$t.onchange = () => {
+  $s.innerHTML = "";
+  THEATERS[$t.value].screens.forEach((sc, i) => $s.add(new Option(sc.name, i)));
+  render();
+};
+$s.onchange = render;
+
+function render() {
+  const screen = THEATERS[$t.value].screens[$s.value];
+  $hall.innerHTML = "";
+  $detail.textContent = "좌석을 클릭하면 상세 정보가 표시됩니다.";
+  let best = { score: -1 };
+
+  screen.rows.forEach((row, ri) => {
+    const $row = document.createElement("div");
+    $row.className = "row";
+    $row.insertAdjacentHTML("beforeend", `<span class="rowlabel">${row.label}</span>`);
+    const center = (row.seats + 1) / 2;
+    for (let n = 1; n <= row.seats; n++) {
+      const offsetX = (n - center) * screen.seatWidth;
+      const score = scoreSeat(screen, ri, offsetX);
+      const g = grade(score);
+      const $seat = document.createElement("button");
+      $seat.className = `seat ${g}`;
+      $seat.textContent = n;
+      $seat.onclick = () => {
+        $hall.querySelector(".sel")?.classList.remove("sel");
+        $seat.classList.add("sel");
+        const d = screen.firstRowDist + ri * screen.rowSpacing;
+        const hAngle = (2 * Math.atan(screen.screenWidth / 2 / d) * DEG).toFixed(1);
+        $detail.innerHTML = `<b>${row.label}${n}</b> — 등급 <b>${g}</b> (${score}점)<br>
+          스크린까지 ${d.toFixed(1)}m · 수평 시야각 ${hAngle}° (권장 36~45°)`;
+      };
+      $row.appendChild($seat);
+      if (screen.aisles?.includes(n) && n < row.seats)
+        $row.insertAdjacentHTML("beforeend", `<span class="aisle"></span>`);
+      if (score > best.score) best = { score, label: `${row.label}${n}` };
+    }
+    $row.insertAdjacentHTML("beforeend", `<span class="rowlabel">${row.label}</span>`);
+    $hall.appendChild($row);
+  });
+  $best.textContent = `👑 이 관의 명당: ${best.label} (${best.score}점)`;
+}
+
+$t.onchange();
+
+// self-check: 중앙 중간열이 맨앞 구석보다 높아야 함
+(() => {
+  const sc = THEATERS[0].screens[0];
+  const mid = scoreSeat(sc, Math.floor(sc.rows.length / 2), 0);
+  const frontCorner = scoreSeat(sc, 0, 7 * sc.seatWidth);
+  console.assert(mid > frontCorner, "scoring broken", { mid, frontCorner });
+})();
+</script>
+</body>
+</html>
