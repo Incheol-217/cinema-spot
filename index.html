@@ -65,7 +65,8 @@ function scoreSeat(screen, rowIdx, offsetX, opts = {}) {
   const angleScore = 100 - Math.min(100, Math.abs(hAngle - (opts.targetAngle ?? 40)) * 2.5);
   const aislePenalty = opts.byAisle ? 7 : 0;   // 관객 이동·비상등
   const backPenalty = opts.lastRow ? 10 : 0;   // 자막 가독성·몰입 저하
-  return Math.max(0, Math.round(angleScore - skew * 2 - aislePenalty - backPenalty));
+  const community = opts.communityBonus ?? 0;  // 실관람 후기 보너스
+  return Math.min(100, Math.max(0, Math.round(angleScore - skew * 2 - aislePenalty - backPenalty + community)));
 }
 const grade = s => s >= 85 ? "S" : s >= 70 ? "A" : s >= 50 ? "B" : "C";
 
@@ -118,7 +119,8 @@ function render() {
       const byAisle = n === 1 || n === row.seats ||
         screen.aisles?.some(a => n === a || n === a + 1);
       const opts = { targetAngle: GENRES[$g.value], byAisle,
-                     lastRow: ri === screen.rows.length - 1 };
+                     lastRow: ri === screen.rows.length - 1,
+                     communityBonus: screen.community?.[row.label] };
       const score = scoreSeat(screen, ri, offsetX, opts);
       const g = grade(score);
       const $seat = document.createElement("button");
@@ -129,8 +131,10 @@ function render() {
         $seat.classList.add("sel");
         const d = screen.firstRowDist + ri * screen.rowSpacing;
         const hAngle = (2 * Math.atan(screen.screenWidth / 2 / d) * DEG).toFixed(1);
+        const cm = screen.community?.[row.label]
+          ? `<br>💬 실관람 후기 추천 열 (+${screen.community[row.label]}점) — ${screen.community.note}` : "";
         $detail.innerHTML = `<b>${row.label}${n}</b> — 등급 <b>${g}</b> (${score}점)<br>
-          스크린까지 ${d.toFixed(1)}m · 수평 시야각 ${hAngle}° (권장 36~45°)`;
+          스크린까지 ${d.toFixed(1)}m · 수평 시야각 ${hAngle}° (권장 36~45°)${cm}`;
       };
       $row.appendChild($seat);
       if (screen.aisles?.includes(n) && n < row.seats)

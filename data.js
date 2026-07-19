@@ -14,6 +14,9 @@ const THEATERS = [
         seatWidth: 0.55,
         aisles: [6, 20],
         centerCol: 11.5, // 스크린 중심 = 1~22석 블록 가운데
+        // 실관람 후기 추천 열 (열 라벨 → 점수 보너스)
+        community: { F: 8, E: 4, G: 4,
+          note: "후기 최다 추천 F열 중앙. E/G열 무난, G열부터 스크린 좌우 끝이 살짝 보임" },
         rows: [
           { label: "A", seats: 25, absent: [1, 2, 19, 20, 23, 24, 25] }, // A16~18 장애인석
           { label: "B", seats: 25, absent: [23, 24, 25] },
