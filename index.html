@@ -35,7 +35,8 @@
 <body>
 <h1>🎬 영화관 명당 찾기</h1>
 <div>
-  <select id="theater"></select>
+  <select id="chainSel"></select>
+  <select id="branchSel"></select>
   <select id="screenSel"></select>
 </div>
 <div class="legend">
@@ -62,22 +63,32 @@ function scoreSeat(screen, rowIdx, offsetX) {
 }
 const grade = s => s >= 85 ? "S" : s >= 70 ? "A" : s >= 50 ? "B" : "C";
 
-const $t = document.getElementById("theater");
+const $c = document.getElementById("chainSel");
+const $b = document.getElementById("branchSel");
 const $s = document.getElementById("screenSel");
 const $hall = document.getElementById("hall");
 const $detail = document.getElementById("detail");
 const $best = document.getElementById("best");
 
-THEATERS.forEach((t, i) => $t.add(new Option(t.name, i)));
-$t.onchange = () => {
+// 극장 이름 "체인 지점" 에서 체인/지점 파생 (예: "CGV 의정부")
+const chainOf = t => t.name.split(" ")[0];
+const branchOf = t => t.name.split(" ").slice(1).join(" ") || t.name;
+
+[...new Set(THEATERS.map(chainOf))].forEach(c => $c.add(new Option(c, c)));
+$c.onchange = () => {
+  $b.innerHTML = "";
+  THEATERS.forEach((t, i) => { if (chainOf(t) === $c.value) $b.add(new Option(branchOf(t), i)); });
+  $b.onchange();
+};
+$b.onchange = () => {
   $s.innerHTML = "";
-  THEATERS[$t.value].screens.forEach((sc, i) => $s.add(new Option(sc.name, i)));
+  THEATERS[$b.value].screens.forEach((sc, i) => $s.add(new Option(sc.name, i)));
   render();
 };
 $s.onchange = render;
 
 function render() {
-  const screen = THEATERS[$t.value].screens[$s.value];
+  const screen = THEATERS[$b.value].screens[$s.value];
   $hall.innerHTML = "";
   $detail.textContent = "좌석을 클릭하면 상세 정보가 표시됩니다.";
   let best = { score: -1 };
@@ -119,7 +130,7 @@ function render() {
   $best.textContent = `👑 이 관의 명당: ${best.label} (${best.score}점)`;
 }
 
-$t.onchange();
+$c.onchange();
 
 // self-check: 중앙 중간열이 맨앞 구석보다 높아야 함
 (() => {
