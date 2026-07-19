@@ -25,6 +25,48 @@ const THEATERS = [
           { label: "H", seats: 12 },
         ],
       },
+      {
+        name: "6관",
+        screenWidth: 11, // 추정치
+        firstRowDist: 6, // 추정치
+        rowSpacing: 1.1, // 추정치
+        seatWidth: 0.55,
+        aisles: [2, 11],
+        note: "A~B열 Light존 · J10·J11 장애인석",
+        rows: [
+          { label: "A", seats: 13 },
+          { label: "B", seats: 13 },
+          { label: "C", seats: 13 },
+          { label: "D", seats: 13 },
+          { label: "E", seats: 13 },
+          { label: "F", seats: 13 },
+          { label: "G", seats: 13 },
+          { label: "H", seats: 13 },
+          { label: "I", seats: 13 },
+          { label: "J", seats: 13, absent: [3, 4, 5, 6, 7, 8, 9] },
+        ],
+      },
+      {
+        name: "7관",
+        screenWidth: 11, // 추정치
+        firstRowDist: 6, // 추정치
+        rowSpacing: 1.1, // 추정치
+        seatWidth: 0.55,
+        aisles: [2, 12],
+        note: "A~B열 Light존 · J3·J4 장애인석",
+        rows: [
+          { label: "A", seats: 14 },
+          { label: "B", seats: 14 },
+          { label: "C", seats: 14 },
+          { label: "D", seats: 14 },
+          { label: "E", seats: 14 },
+          { label: "F", seats: 14 },
+          { label: "G", seats: 14 },
+          { label: "H", seats: 14 },
+          { label: "I", seats: 14 },
+          { label: "J", seats: 14, absent: [5, 6, 7, 8, 9, 10, 11, 12] },
+        ],
+      },
     ],
   },
   {
